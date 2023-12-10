@@ -1,3 +1,5 @@
 pmbench:
 	go build ./cmd/$@
-.PHONY: pmbench
+test:
+	go test ./...
+.PHONY: pmbench test
