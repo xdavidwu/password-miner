@@ -79,6 +79,9 @@ func Stratum(r io.Reader, w io.Writer, loginParam StratumLoginParams) {
 		}
 	}()
 
+	accepted := 0
+	total := 0
+
 	for {
 		res, err := reader.ReadBytes('\n')
 		if err != nil {
@@ -101,9 +104,12 @@ func Stratum(r io.Reader, w io.Writer, loginParam StratumLoginParams) {
 				log.Fatalf("unable to unmarshal response: %v", err)
 			}
 			if asResponse.Error != nil {
-				log.Printf("Unaccepted share: %v\n", asResponse.Error.Message)
+				total += 1
+				log.Printf("Unaccepted share %v/%v: %v\n", accepted, total, asResponse.Error.Message)
 			} else if asResponse.Result.Status == "OK" {
-				log.Printf("Accepted share\n")
+				accepted += 1
+				total += 1
+				log.Printf("Accepted share %v/%v\n", accepted, total)
 			} else {
 				log.Fatalf("Unrecognized message: %v", res)
 			}
