@@ -7,6 +7,7 @@ import (
 
 type ScanResult struct {
 	Solution string
+	Hash []byte
 	Iterations int
 }
 
@@ -56,6 +57,7 @@ func (s ScanHash) Scan(template string, prefix []byte, out chan ScanResult) chan
 			if bytes.HasPrefix(hash, prefix) {
 				out <- ScanResult{
 					Solution: c,
+					Hash: hash,
 					Iterations: iterations,
 				}
 			}
