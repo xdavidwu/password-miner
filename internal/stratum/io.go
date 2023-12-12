@@ -68,13 +68,13 @@ func Stratum(r io.Reader, w io.Writer, loginParam StratumLoginParams) {
 				Params: sub,
 			})
 			if err != nil {
-				log.Printf("unable to marshal submit request: %v", err)
-				close(stop)
-				return
+				log.Fatalf("unable to marshal submit request: %v", err)
 			}
 			_, err = w.Write(append(request, byte('\n')))
 			if err != nil {
-				log.Fatalf("unable to send submit request: %v", err)
+				log.Printf("Unable to send submit request: %v", err)
+				close(stop)
+				return
 			}
 		}
 	}()
@@ -86,7 +86,7 @@ func Stratum(r io.Reader, w io.Writer, loginParam StratumLoginParams) {
 		res, err := reader.ReadBytes('\n')
 		if err != nil {
 			close(stop)
-			log.Printf("unable to read response: %v", err)
+			log.Printf("Unable to read response: %v", err)
 			return
 		}
 		asJob := StratumJobNotif{}
