@@ -2,6 +2,7 @@ package stratum
 
 import (
 	"encoding/hex"
+	"math"
 	"log"
 
 	"git.cs.nctu.edu.tw/wuph0612/password-miner/internal"
@@ -17,6 +18,7 @@ func SwitchedScan(in chan StratumJobParams, out chan StratumSubmitParams) chan s
 	algo := ""
 	jobId := ""
 	id := ""
+	difficulty := float64(0)
 	go func() {
 		for {
 			select {
@@ -36,6 +38,11 @@ func SwitchedScan(in chan StratumJobParams, out chan StratumSubmitParams) chan s
 				t, err := hex.DecodeString(i.Target)
 				if err != nil {
 					log.Fatalf("malformed target (%v): %v", i.Target, err)
+				}
+				d := math.Pow(256, float64(len(t)))
+				if d != difficulty {
+					log.Printf("Pool set difficulty to %.4g\n", d)
+					difficulty = d
 				}
 				close(scannerStop)
 				scannerOut = make(chan scanhash.MeteredResult)
