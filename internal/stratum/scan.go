@@ -1,36 +1,13 @@
 package stratum
 
 import (
-	"crypto/md5"
-	"crypto/sha1"
-	"crypto/sha256"
-	"crypto/sha512"
 	"encoding/hex"
-	"hash"
 	"log"
 
+	"git.cs.nctu.edu.tw/wuph0612/password-miner/internal"
 	"git.cs.nctu.edu.tw/wuph0612/password-miner/internal/scanhash"
 	"github.com/dustin/go-humanize"
 )
-
-func NameToHash(name string) *hash.Hash {
-	switch name {
-	case "md5":
-		h := md5.New()
-		return &h
-	case "sha1":
-		h := sha1.New()
-		return &h
-	case "sha256":
-		h := sha256.New()
-		return &h
-	case "sha512":
-		h := sha512.New()
-		return &h
-	default:
-		return nil
-	}
-}
 
 func SwitchedScan(in chan StratumJobParams, out chan StratumSubmitParams) chan struct{} {
 	stop := make(chan struct{})
@@ -48,7 +25,7 @@ func SwitchedScan(in chan StratumJobParams, out chan StratumSubmitParams) chan s
 				return
 			case i := <-in:
 				if i.Algo != algo {
-					h := NameToHash(i.Algo)
+					h := internal.NameToHash(i.Algo)
 					if h == nil {
 						log.Fatalf("unsupported algorithm: %v", i.Algo)
 					}
