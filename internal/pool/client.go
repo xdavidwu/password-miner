@@ -62,7 +62,7 @@ func (c Client) Blob() string {
 	return "" //TODO
 }
 
-func (c Client) ResetAlgo() {
+func (c *Client) ResetAlgo() {
 	c.Shares = []string{}
 	t := time.Now()
 	c.Start = &t
@@ -86,7 +86,7 @@ func rejectSubmission(id int, message string) (stratum.StratumSubmitResponse, er
 	}, errors.New(message)
 }
 
-func (c Client) ValidateSubmission(s stratum.StratumSubmitRequest) (stratum.StratumSubmitResponse, error) {
+func (c *Client) ValidateSubmission(s stratum.StratumSubmitRequest) (stratum.StratumSubmitResponse, error) {
 	if s.Params.JobId != c.Job.JobId || s.Params.Id != c.Id {
 		// TODO be more generous about stales
 		return rejectSubmission(s.Id, "Block expired")
@@ -133,7 +133,7 @@ func (c Client) ValidateSubmission(s stratum.StratumSubmitRequest) (stratum.Stra
 	}, nil
 }
 
-func (c Client) newJob(t string) {
+func (c *Client) newJob(t string) {
 	c.JobIdInt += 1
 	c.Job = stratum.StratumJobParams{
 		JobId: fmt.Sprintf("%v", c.JobIdInt),
@@ -144,7 +144,7 @@ func (c Client) newJob(t string) {
 	}
 }
 
-func (c Client) handleStratum(
+func (c *Client) handleStratum(
 		submissions chan stratum.StratumSubmitRequest,
 		results chan stratum.StratumSubmitResponse,
 		jobs chan stratum.StratumJobParams,
@@ -158,7 +158,7 @@ func (c Client) handleStratum(
 			case s := <-submissions:
 				// TODO banning/abort connection on client misbehavior
 				res, err := c.ValidateSubmission(s)
-				if err != nil {
+				if err == nil {
 					hr = c.HashRate()
 					log.Printf("Client(%v): %v", c.Id, humanize.SIWithDigits(hr, 3, "H/s"))
 					if s.Params.Result == c.Work.Hash {
@@ -208,7 +208,7 @@ func (c Client) handleStratum(
 	return stop
 }
 
-func (c Client) Control(works chan Work, solutions chan string) {
+func (c *Client) Control(works chan Work, solutions chan string) {
 	submissions := make(chan stratum.StratumSubmitRequest)
 	results := make(chan stratum.StratumSubmitResponse)
 	jobs := make(chan stratum.StratumJobParams)
