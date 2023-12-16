@@ -45,7 +45,7 @@ var resultOK = stratum.StratumResult{
 }
 
 func (c Client) HashRate() float64 {
-	return c.EstHashes / float64(c.LastSub.Unix() - c.Start.Unix())
+	return c.EstHashes / (float64(c.LastSub.UnixNano() - c.Start.UnixNano()) / 1e9)
 }
 
 // XXX we should make our target more flexible, maybe into bits
