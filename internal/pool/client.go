@@ -249,7 +249,16 @@ func (c *Client) Control(works chan Work, solutions chan string) {
 			if !ok {
 				return
 			}
-			o, err := json.Marshal(j)
+			job := stratum.StratumJobNotif{
+				JsonRpcRequest: stratum.JsonRpcRequest{
+					JsonRpcMessage: stratum.JsonRpcMessage{
+						Version: "2.0",
+					},
+					Method: "job",
+				},
+				Params: j,
+			}
+			o, err := json.Marshal(job)
 			if err != nil {
 				panic(err)
 			}
