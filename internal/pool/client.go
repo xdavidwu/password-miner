@@ -161,7 +161,7 @@ func (c *Client) handleStratum(
 				if err == nil {
 					hr = c.HashRate()
 					log.Printf("Client(%v): %v", c.Id, humanize.SIWithDigits(hr, 3, "H/s"))
-					if s.Params.Result == c.Work.Hash {
+					if strings.HasPrefix(s.Params.Result, c.Work.Hash) {
 						sol <- s.Params.NOnce
 						log.Printf("Solution found for %v by %v: \"%v\"\n", c.Work.Hash, c.Id, s.Params.NOnce)
 					}
