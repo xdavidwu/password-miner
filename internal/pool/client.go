@@ -19,7 +19,7 @@ import (
 )
 
 type Client struct {
-	R bufio.Reader
+	R *bufio.Reader
 	W io.Writer
 	Id string
 	JobIdInt int
@@ -35,7 +35,7 @@ type Client struct {
 }
 
 const DesiredSubmissionIntSec = 10
-const DifficultyAdjustIntSec = 60
+const DifficultyAdjustIntSec = 30
 // TODO should be per-algo
 // TODO support initial difficulty selection (login benchmark info)
 const InitiallyAssumedHashRate = 1e6
