@@ -35,18 +35,14 @@ func SwitchedScan(in chan StratumJobParams, out chan StratumSubmitParams) chan s
 					log.Printf("Pool switch algorithm to %v\n", algo)
 					s = &scanhash.ScanHash{Hash: *h}
 				}
-				t, err := hex.DecodeString(i.Target)
-				if err != nil {
-					log.Fatalf("malformed target (%v): %v", i.Target, err)
-				}
-				d := math.Pow(256, float64(len(t)))
+				d := math.Pow(16, float64(len(i.Target)))
 				if d != difficulty {
 					log.Printf("Pool set difficulty to %.4g\n", d)
 					difficulty = d
 				}
 				close(scannerStop)
 				scannerOut = make(chan scanhash.MeteredResult)
-				scannerStop = s.MeteredScan(i.Blob, t, scannerOut)
+				scannerStop = s.MeteredScan(i.Blob, i.Target, scannerOut)
 				jobId = i.JobId
 				id = i.Id
 			case sol := <- scannerOut:

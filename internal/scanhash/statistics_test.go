@@ -31,7 +31,7 @@ func (fakeHash) BlockSize() int {
 func TestMeteredScan(t *testing.T) {
 	s := scanhash.ScanHash{Hash: fakeHash{}}
 	out := make(chan scanhash.MeteredResult)
-	stop := s.MeteredScan("", []byte{}, out)
+	stop := s.MeteredScan("", "", out)
 	res := <-out
 	if res.HashRate > 100 || res.HashRate < 95 {
 		t.Fatalf("Expected hashrate about 100, got %v", res.HashRate)

@@ -2,6 +2,7 @@ package scanhash
 
 import (
 	"bytes"
+	"encoding/hex"
 	"hash"
 )
 
@@ -44,7 +45,29 @@ func IterateString(template string, out chan string) chan struct{} {
 	return stop
 }
 
-func (s ScanHash) Scan(template string, prefix []byte, out chan ScanResult) chan struct{} {
+func HasPrefix(b []byte, prefix string) bool {
+	if len(prefix) % 2 == 0 {
+		bp, err := hex.DecodeString(prefix)
+		if err != nil {
+			panic(err)
+		}
+		return bytes.HasPrefix(b, bp)
+	}
+	bp, err := hex.DecodeString(prefix[:len(prefix) - 1])
+	if err != nil {
+		panic(err)
+	}
+	if !bytes.HasPrefix(b, bp) {
+		return false
+	}
+	bp, err = hex.DecodeString(prefix[len(prefix) - 1:] + "0")
+	if err != nil {
+		panic(err)
+	}
+	return b[len(prefix) / 2] & 0xf0 == bp[0]
+}
+
+func (s ScanHash) Scan(template string, prefix string, out chan ScanResult) chan struct{} {
 	candidates := make(chan string)
 	stop := IterateString(template, candidates)
 	iterations := 0
@@ -54,7 +77,7 @@ func (s ScanHash) Scan(template string, prefix []byte, out chan ScanResult) chan
 			s.Hash.Reset()
 			s.Hash.Write([]byte(c))
 			hash := s.Hash.Sum(nil)
-			if bytes.HasPrefix(hash, prefix) {
+			if HasPrefix(hash, prefix) {
 				out <- ScanResult{
 					Solution: c,
 					Hash: hash,

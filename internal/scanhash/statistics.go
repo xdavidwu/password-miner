@@ -9,7 +9,7 @@ type MeteredResult struct {
 	HashRate float64
 }
 
-func (s ScanHash) MeteredScan(template string, prefix []byte, out chan MeteredResult) chan struct{} {
+func (s ScanHash) MeteredScan(template string, prefix string, out chan MeteredResult) chan struct{} {
 	hit := make(chan ScanResult)
 
 	start := time.Now().UnixNano()

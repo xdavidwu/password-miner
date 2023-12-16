@@ -2,7 +2,6 @@ package scanhash_test
 
 import (
 	"crypto/md5"
-	"encoding/hex"
 	"testing"
 
 	"git.cs.nctu.edu.tw/wuph0612/password-miner/internal/scanhash"
@@ -33,12 +32,8 @@ func TestScanHash(t *testing.T) {
 	s := scanhash.ScanHash{Hash: md5.New()}
 	// https://hashcat.net/wiki/doku.php?id=example_hashes
 	// hashcat: 8743b52063cd84097a65d1633f5c74f5
-	prefix, err := hex.DecodeString("8743b52063cd84097a65d1633f5c74")
-	if err != nil {
-		t.Fatalf("Invalid hash prefix in test data: %v", err)
-	}
 	out := make(chan scanhash.ScanResult)
-	stop := s.Scan("hashca ", prefix, out)
+	stop := s.Scan("hashca ", "8743b52063cd84097a65d1633f5c74", out)
 	res := <-out
 	if res.Solution != "hashcat" {
 		t.Fatalf("Scanner skipped expected solution to: %v", res.Solution)
