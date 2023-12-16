@@ -3,6 +3,7 @@ package pool
 import (
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"math"
@@ -12,12 +13,14 @@ import (
 
 	"git.cs.nctu.edu.tw/wuph0612/password-miner/internal"
 	"git.cs.nctu.edu.tw/wuph0612/password-miner/internal/stratum"
+	"github.com/dustin/go-humanize"
 )
 
 type Client struct {
 	r io.Reader
 	w io.Writer
 	Id string
+	JobIdInt int
 	Work
 	Job stratum.StratumJobParams
 	ValidShares int
@@ -30,7 +33,7 @@ type Client struct {
 }
 
 const DesiredSubmissionIntSec = 10
-const JobDifficultyAdjustTimeout = 60
+const DifficultyAdjustIntSec = 60
 // TODO should be per-algo
 // TODO support initial difficulty selection (login benchmark info)
 const InitiallyAssumedHashRate = 1e6
@@ -57,7 +60,12 @@ func (c Client) Blob() string {
 	return "" //TODO
 }
 
-func (c Client) Control() {
+func (c Client) ResetAlgo() {
+	c.Shares = []string{}
+	t := time.Now()
+	c.Start = &t
+	c.LastSub = nil
+	c.EstHashes = 0
 }
 
 func rejectSubmission(id int, message string) (stratum.StratumSubmitResponse, error) {
@@ -112,11 +120,6 @@ func (c Client) ValidateSubmission(s stratum.StratumSubmitRequest) (stratum.Stra
 	t := time.Now()
 	c.LastSub = &t
 
-	if s.Params.Result == c.Work.Hash {
-		log.Printf("Solution found for %v by %v: \"%v\"\n", c.Work.Hash, c.Id, s.Params.NOnce)
-		// TODO solution found
-	}
-
 	return stratum.StratumSubmitResponse{
 		JsonRpcResponse: stratum.JsonRpcResponse{
 			JsonRpcMessage: stratum.JsonRpcMessage{
@@ -126,4 +129,75 @@ func (c Client) ValidateSubmission(s stratum.StratumSubmitRequest) (stratum.Stra
 		},
 		Result: &resultOK,
 	}, nil
+}
+
+func (c Client) newJob(t string) {
+	c.JobIdInt += 1
+	c.Job = stratum.StratumJobParams{
+		JobId: fmt.Sprintf("%v", c.JobIdInt),
+		Id: c.Id,
+		Blob: c.Blob(),
+		Algo: c.Work.Algo,
+		Target: t,
+	}
+}
+
+func (c Client) handleStratum(
+		submissions chan stratum.StratumSubmitRequest,
+		results chan stratum.StratumSubmitResponse,
+		jobs chan stratum.StratumJobParams,
+		works chan Work, sol chan string) chan struct{} {
+	stop := make(chan struct{})
+	hr := InitiallyAssumedHashRate
+	diffAdj := make(<-chan time.Time)
+	go func() {
+		for {
+			select {
+			case s := <-submissions:
+				// TODO banning/abort connection on client misbehavior
+				res, err := c.ValidateSubmission(s)
+				if err != nil {
+					hr = c.HashRate()
+					log.Printf("Client(%v): %v", c.Id, humanize.SIWithDigits(hr, 3, "H/s"))
+					if s.Params.Result == c.Work.Hash {
+						sol <- s.Params.NOnce
+						log.Printf("Solution found for %v by %v: \"%v\"\n", c.Work.Hash, c.Id, s.Params.NOnce)
+					}
+				}
+				results <- res
+			case w := <-works:
+				if w.Algo != c.Work.Algo {
+					c.ResetAlgo()
+					// XXX: should do invidual hr estimation
+				}
+				c.Work = w
+				d, t := c.DifficultyTargetForHashRate(hr)
+				c.Difficulty = d
+				c.newJob(t)
+				diffAdj = time.After(DifficultyAdjustIntSec * time.Second)
+				log.Printf("Client(%v): new job via new work at difficulty %g", c.Id, d)
+				jobs <- c.Job
+			case <-diffAdj:
+				if c.EstHashes == 0 { // never submitted, no estimation
+					hr /= 256
+					d, t := c.DifficultyTargetForHashRate(hr)
+					c.Difficulty = d
+					c.newJob(t)
+					diffAdj = time.After(DifficultyAdjustIntSec * time.Second)
+					log.Printf("Client(%v): new job via blind scaling at difficulty %g", c.Id, d)
+					jobs <- c.Job
+				} else {
+					d, t := c.DifficultyTargetForHashRate(hr)
+					if d != c.Difficulty {
+						c.Difficulty = d
+						c.newJob(t)
+						diffAdj = time.After(DifficultyAdjustIntSec * time.Second)
+						log.Printf("Client(%v): new job via scaling at difficulty %g", c.Id, d)
+						jobs <- c.Job
+					}
+				}
+			}
+		}
+	}()
+	return stop
 }
