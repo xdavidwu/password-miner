@@ -33,7 +33,7 @@ func SwitchedScan(in chan StratumJobParams, out chan StratumSubmitParams) chan s
 					}
 					algo = i.Algo
 					log.Printf("Pool switch algorithm to %v\n", algo)
-					s = &scanhash.ScanHash{Hash: *h}
+					s = &scanhash.ScanHash{Hash: h}
 				}
 				d := math.Pow(16, float64(len(i.Target)))
 				if d != difficulty {

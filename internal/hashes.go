@@ -6,22 +6,21 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"hash"
+	"hash/fnv"
 )
 
-func NameToHash(name string) *hash.Hash {
+func NameToHash(name string) hash.Hash {
 	switch name {
 	case "md5":
-		h := md5.New()
-		return &h
+		return md5.New()
 	case "sha1":
-		h := sha1.New()
-		return &h
+		return sha1.New()
 	case "sha256":
-		h := sha256.New()
-		return &h
+		return sha256.New()
 	case "sha512":
-		h := sha512.New()
-		return &h
+		return sha512.New()
+	case "fnv32a":
+		return fnv.New32()
 	default:
 		return nil
 	}

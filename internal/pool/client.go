@@ -110,8 +110,8 @@ func (c *Client) ValidateSubmission(s stratum.StratumSubmitRequest) (stratum.Str
 		panic("hash unsupported but used")
 	}
 
-	(*h).Write([]byte(s.Params.NOnce))
-	hash := (*h).Sum(nil)
+	h.Write([]byte(s.Params.NOnce))
+	hash := h.Sum(nil)
 	if s.Params.Result != hex.EncodeToString(hash) {
 		return rejectSubmission(s.Id, "Invalid share")
 	}
