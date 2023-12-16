@@ -1,7 +1,9 @@
 package pool
 
 import (
+	"bufio"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -17,8 +19,8 @@ import (
 )
 
 type Client struct {
-	r io.Reader
-	w io.Writer
+	R bufio.Reader
+	W io.Writer
 	Id string
 	JobIdInt int
 	Work
@@ -196,8 +198,66 @@ func (c Client) handleStratum(
 						jobs <- c.Job
 					}
 				}
+			case <-stop:
+				close(results)
+				close(jobs)
+				return
 			}
 		}
 	}()
 	return stop
+}
+
+func (c Client) Control(works chan Work, solutions chan string) {
+	submissions := make(chan stratum.StratumSubmitRequest)
+	results := make(chan stratum.StratumSubmitResponse)
+	jobs := make(chan stratum.StratumJobParams)
+	stop := c.handleStratum(submissions, results, jobs, works, solutions)
+
+	go func() {
+		for {
+			b, err := c.R.ReadBytes(byte('\n'))
+			if err != nil {
+				close(stop)
+				return
+			}
+			s := stratum.StratumSubmitRequest{}
+			err = json.Unmarshal(b, &s)
+			if err != nil {
+				log.Printf("Client(%v): unrecognized message\n", c.Id)
+			}
+			submissions <- s
+		}
+	}()
+
+	for {
+		select {
+		case r, ok := <-results:
+			if !ok {
+				return
+			}
+			o, err := json.Marshal(r)
+			if err != nil {
+				panic(err)
+			}
+			_, err = c.W.Write(append(o, byte('\n')))
+			if err != nil {
+				close(stop)
+				return
+			}
+		case j, ok := <-jobs:
+			if !ok {
+				return
+			}
+			o, err := json.Marshal(j)
+			if err != nil {
+				panic(err)
+			}
+			_, err = c.W.Write(append(o, byte('\n')))
+			if err != nil {
+				close(stop)
+				return
+			}
+		}
+	}
 }
