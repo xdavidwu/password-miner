@@ -59,7 +59,9 @@ func (c Client) DifficultyTarget() (float64, string) {
 }
 
 func (c Client) Blob() string {
-	return fmt.Sprintf("%s-%d-", c.Id, c.JobIdInt) + strings.Repeat(" ", 20)
+	h := internal.NameToHash(c.Work.Algo)
+	sz := int(math.Ceil(float64(h.Size() * 8) / math.Log2(96)))
+	return fmt.Sprintf("%s-%d-", c.Id, c.JobIdInt) + strings.Repeat(" ", sz)
 }
 
 func (c *Client) ResetAlgo() {
