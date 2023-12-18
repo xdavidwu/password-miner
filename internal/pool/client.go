@@ -59,7 +59,7 @@ func (c Client) DifficultyTarget() (float64, string) {
 }
 
 func (c Client) Blob() string {
-	return "" //TODO
+	return fmt.Sprintf("%s-%d-", c.Id, c.JobIdInt) + strings.Repeat(" ", 20)
 }
 
 func (c *Client) ResetAlgo() {
