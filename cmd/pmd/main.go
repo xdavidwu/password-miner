@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net"
 	"os"
 
@@ -122,6 +123,7 @@ func main() {
 				c := pool.Client{
 					R: r,
 					W: conn,
+					Id: fmt.Sprintf("%x", rand.Uint32()),
 				}
 				w := make(chan pool.Work)
 				reg <- w
