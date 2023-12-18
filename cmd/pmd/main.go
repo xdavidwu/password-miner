@@ -123,7 +123,7 @@ func main() {
 				c := pool.Client{
 					R: r,
 					W: conn,
-					Id: fmt.Sprintf("%x", rand.Uint32()),
+					Id: fmt.Sprintf("%s-%x", a.Params.Login, rand.Uint32()),
 				}
 				w := make(chan pool.Work)
 				reg <- w
