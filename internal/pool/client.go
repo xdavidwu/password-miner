@@ -51,6 +51,9 @@ func (c Client) HashRate() float64 {
 // XXX we should make our target more flexible, maybe into bits
 func (c Client) DifficultyTargetForHashRate(hr float64) (float64, string) {
 	l := int(math.Log2(hr * DesiredSubmissionIntSec) / 4)
+	if l > len(c.Work.Hash) {
+		l = len(c.Work.Hash)
+	}
 	return math.Pow(16, float64(l)), c.Work.Hash[:l]
 }
 
