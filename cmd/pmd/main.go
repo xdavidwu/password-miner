@@ -11,6 +11,7 @@ import (
 	"net"
 	"os"
 
+	"git.cs.nctu.edu.tw/wuph0612/password-miner/internal"
 	"git.cs.nctu.edu.tw/wuph0612/password-miner/internal/pool"
 	"git.cs.nctu.edu.tw/wuph0612/password-miner/internal/stratum"
 )
@@ -20,8 +21,16 @@ const (
 )
 
 func main() {
+	hashTypes := ""
+	for _, h := range internal.SupportList {
+		hashTypes += ", " + h.Name
+	}
+	hashTypes = hashTypes[2:]
 	addr := flag.String("address", "0.0.0.0:1234", "Address to listen on")
-	hashesFile := flag.String("hashes", "hashes", "File containing list of hases")
+	hashesFile := flag.String("hashes", "hashes", `File containing list of hases, formatted in lines of
+<type> <hash>
+Where hash is in hex, and may be a prefix for quick demonstration
+Supported types: ` + hashTypes + "\n")
 	flag.Parse()
 
 	log.SetFlags(loggerFlags)
