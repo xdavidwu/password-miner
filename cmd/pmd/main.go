@@ -15,10 +15,16 @@ import (
 	"git.cs.nctu.edu.tw/wuph0612/password-miner/internal/stratum"
 )
 
+const (
+	loggerFlags = log.LstdFlags | log.Lmicroseconds
+)
+
 func main() {
 	addr := flag.String("address", "0.0.0.0:1234", "Address to listen on")
 	hashesFile := flag.String("hashes", "hashes", "File containing list of hases")
 	flag.Parse()
+
+	log.SetFlags(loggerFlags)
 
 	list, err := os.Open(*hashesFile)
 	if err != nil {
@@ -119,7 +125,7 @@ func main() {
 				}
 
 				id := fmt.Sprintf("%s-%x", a.Params.Login, rand.Uint32())
-				logger := log.New(os.Stderr, "Client(" + id + "): " , log.LstdFlags | log.Lmsgprefix)
+				logger := log.New(os.Stderr, "Client(" + id + "): " , loggerFlags | log.Lmsgprefix)
 				logger.Printf("New client\n")
 				defer logger.Printf("Lost client\n")
 				c := pool.Client{
