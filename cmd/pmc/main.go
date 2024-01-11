@@ -14,6 +14,8 @@ func main() {
 	password := flag.String("password", "password", "Password")
 	flag.Parse()
 
+	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
+
 	for {
 		conn, err := net.Dial("tcp", *addr)
 		if err != nil {
