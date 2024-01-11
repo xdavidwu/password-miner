@@ -118,12 +118,15 @@ func main() {
 					return
 				}
 
-				log.Printf("New client\n")
-				defer log.Printf("Lost client\n")
+				id := fmt.Sprintf("%s-%x", a.Params.Login, rand.Uint32())
+				logger := log.New(os.Stderr, "Client(" + id + "): " , log.LstdFlags | log.Lmsgprefix)
+				logger.Printf("New client\n")
+				defer logger.Printf("Lost client\n")
 				c := pool.Client{
 					R: r,
 					W: conn,
-					Id: fmt.Sprintf("%s-%x", a.Params.Login, rand.Uint32()),
+					Id: id,
+					Log: logger,
 				}
 				w := make(chan pool.Work)
 				reg <- w

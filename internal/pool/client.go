@@ -32,6 +32,8 @@ type Client struct {
 	LastSub *time.Time
 	Start *time.Time
 	Shares []string
+
+	Log *log.Logger
 }
 
 const DesiredSubmissionIntSec = 10
@@ -165,10 +167,10 @@ func (c *Client) handleStratum(
 				res, err := c.ValidateSubmission(s)
 				if err == nil {
 					hr = c.HashRate()
-					log.Printf("Client(%v): %v", c.Id, humanize.SIWithDigits(hr, 3, "H/s"))
+					c.Log.Printf("%v", humanize.SIWithDigits(hr, 3, "H/s"))
 					if strings.HasPrefix(s.Params.Result, c.Work.Hash) {
 						sol <- s.Params.NOnce
-						log.Printf("Solution found for %v by %v: \"%v\"\n", c.Work.Hash, c.Id, s.Params.NOnce)
+						c.Log.Printf("Solution found for %v: \"%v\"\n", c.Work.Hash, s.Params.NOnce)
 					}
 				}
 				results <- res
@@ -182,7 +184,7 @@ func (c *Client) handleStratum(
 				c.Difficulty = d
 				c.newJob(t)
 				diffAdj = time.After(DifficultyAdjustIntSec * time.Second)
-				log.Printf("Client(%v): new job via new work at difficulty %g", c.Id, d)
+				c.Log.Printf("New job via new work at difficulty %g", d)
 				jobs <- c.Job
 			case <-diffAdj:
 				if c.EstHashes == 0 { // never submitted, no estimation
@@ -191,7 +193,7 @@ func (c *Client) handleStratum(
 					c.Difficulty = d
 					c.newJob(t)
 					diffAdj = time.After(DifficultyAdjustIntSec * time.Second)
-					log.Printf("Client(%v): new job via blind scaling at difficulty %g", c.Id, d)
+					c.Log.Printf("New job via blind scaling at difficulty %g", d)
 					jobs <- c.Job
 				} else {
 					d, t := c.DifficultyTargetForHashRate(hr)
@@ -199,7 +201,7 @@ func (c *Client) handleStratum(
 						c.Difficulty = d
 						c.newJob(t)
 						diffAdj = time.After(DifficultyAdjustIntSec * time.Second)
-						log.Printf("Client(%v): new job via scaling at difficulty %g", c.Id, d)
+						c.Log.Printf("New job via scaling at difficulty %g", d)
 						jobs <- c.Job
 					}
 				}
@@ -229,7 +231,7 @@ func (c *Client) Control(works chan Work, solutions chan string) {
 			s := stratum.StratumSubmitRequest{}
 			err = json.Unmarshal(b, &s)
 			if err != nil {
-				log.Printf("Client(%v): unrecognized message\n", c.Id)
+				c.Log.Printf("unrecognized message")
 			}
 			submissions <- s
 		}
