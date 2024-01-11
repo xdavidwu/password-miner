@@ -6,22 +6,27 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"hash"
-	"hash/fnv"
 )
 
+type H struct {
+	Name string
+	F func () hash.Hash
+}
+
+var SupportList = []H{
+	{"md5", md5.New},
+	{"sha1", sha1.New},
+	{"sha224", sha256.New224},
+	{"sha256", sha256.New},
+	{"sha384", sha512.New384},
+	{"sha512", sha512.New},
+}
+
 func NameToHash(name string) hash.Hash {
-	switch name {
-	case "md5":
-		return md5.New()
-	case "sha1":
-		return sha1.New()
-	case "sha256":
-		return sha256.New()
-	case "sha512":
-		return sha512.New()
-	case "fnv32a":
-		return fnv.New32()
-	default:
-		return nil
+	for _, h := range SupportList {
+		if name == h.Name {
+			return h.F()
+		}
 	}
+	return nil
 }
