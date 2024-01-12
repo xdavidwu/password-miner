@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"git.cs.nctu.edu.tw/wuph0612/password-miner/internal/scanhash"
+	"github.com/xdavidwu/password-miner/internal/scanhash"
 )
 
 type fakeHash struct {}

@@ -4,7 +4,7 @@ import (
 	"crypto/md5"
 	"testing"
 
-	"git.cs.nctu.edu.tw/wuph0612/password-miner/internal/scanhash"
+	"github.com/xdavidwu/password-miner/internal/scanhash"
 )
 
 func TestIterateString(t *testing.T) {

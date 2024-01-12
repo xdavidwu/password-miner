@@ -11,9 +11,9 @@ import (
 	"net"
 	"os"
 
-	"git.cs.nctu.edu.tw/wuph0612/password-miner/internal"
-	"git.cs.nctu.edu.tw/wuph0612/password-miner/internal/pool"
-	"git.cs.nctu.edu.tw/wuph0612/password-miner/internal/stratum"
+	"github.com/xdavidwu/password-miner/internal"
+	"github.com/xdavidwu/password-miner/internal/pool"
+	"github.com/xdavidwu/password-miner/internal/stratum"
 )
 
 const (

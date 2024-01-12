@@ -5,7 +5,7 @@ import (
 	"log"
 	"net"
 
-	"git.cs.nctu.edu.tw/wuph0612/password-miner/internal/stratum"
+	"github.com/xdavidwu/password-miner/internal/stratum"
 )
 
 func main() {

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"git.cs.nctu.edu.tw/wuph0612/password-miner/internal/stratum"
+	"github.com/xdavidwu/password-miner/internal/stratum"
 )
 
 type valueAssert struct {
